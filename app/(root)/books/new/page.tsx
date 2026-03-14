@@ -10,20 +10,7 @@ export default function page() {
 
                 </section>
                 <UploadForm />
-
-
-
-
-
-
             </div>
-
-
-
-
-
-
-
         </main>
     )
 }

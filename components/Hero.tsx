@@ -12,7 +12,7 @@ export default function Hero() {
         <div className="library-hero-text">
           <h1 className="library-hero-title">Your Library</h1>
           <p className="library-hero-description mt-2">
-            Welcome to your personal reading nook. Keep track of what you're reading, save your favorite quotes, and set new reading goals.
+            Welcome to your personal reading nook. Keep track of what you&apos;re reading, save your favorite quotes, and set new reading goals.
           </p>
           <div className="mt-6">
             <Link href="/books/new" className="library-cta-primary">

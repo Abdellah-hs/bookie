@@ -1,9 +1,9 @@
 import React from 'react'
-import { Book } from '@/types'
+import { BookCardProps } from '@/types'
 import Link from 'next/link'
 import Image from 'next/image'
 
-export default function BookCard({ title, author, coverURL, slug }: Book) {
+export default function BookCard({ title, author, coverURL, slug }: BookCardProps) {
     return (
         <Link href={`/books/${slug}`}>
             <article>

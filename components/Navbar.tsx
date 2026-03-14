@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import React from 'react'
 import { usePathname } from 'next/navigation';
+import { Show, UserButton, SignInButton, SignUpButton } from '@clerk/nextjs';
 
 const navItems = [
     { label: "Library", href: "/" },
@@ -44,13 +45,17 @@ export default function Navbar() {
 
                 {/* 3. Right Side: Action Buttons */}
                 <div className="flex items-center gap-4">
-                    {/* Your custom classes for clean button stylings */}
-                    <Link href="/login" className="nav-btn">
-                        Log in
-                    </Link>
-                    <Link href="/signup" className="btn-primary py-2 px-5 text-sm">
-                        Start Reading
-                    </Link>
+                    <Show when="signed-out">
+                        <SignInButton mode="modal">
+                            <button className="nav-btn">Log in</button>
+                        </SignInButton>
+                        <SignUpButton mode="modal">
+                            <button className="btn-primary py-2 px-5 text-sm">Start Reading</button>
+                        </SignUpButton>
+                    </Show>
+                    <Show when="signed-in">
+                        <UserButton />
+                    </Show>
                 </div>
 
             </div>

@@ -9,15 +9,15 @@ import BookSegment from "@/database/bookSegment.model";
 
 
 
-export const checkBookExists = async (title: string) => {
+export const checkBookExists = async (title: string, clerkId: string) => {
     try {
         await connectToDatabase();
         const slug = generateSlug(title);
-        const existingBook = await Book.findOne({ slug }).lean();
+        const existingBook = await Book.findOne({ slug, clerkId }).lean();
         if (existingBook) {
             return {
                 exists: true,
-                data: serializeData(existingBook) as any,
+                data: serializeData(existingBook),
             }
         }
         return {
@@ -35,15 +35,13 @@ export const createBook = async (bookData: CreateBook) => {
         await connectToDatabase();
 
         const slug = generateSlug(bookData.title);
-        const existingBook = await Book.findOne({ slug }).lean();
+        const existingBook = await Book.findOne({ slug, clerkId: bookData.clerkId }).lean();
         if (existingBook) {
             return {
                 success: true,
                 data: serializeData(existingBook),
                 alreadyExists: true,
-
             }
-
         }
         const book = await Book.create({ ...bookData, slug, totalSegments: 0 });
         return {
@@ -61,7 +59,16 @@ export const createBook = async (bookData: CreateBook) => {
 export const saveBookSegments = async (bookId: string, clerkId: string, segments: TextSegment[]) => {
     try {
         await connectToDatabase();
-        console.log("Saving book segments:");
+
+        // Verify book exists and belongs to this user
+        const book = await Book.findById(bookId).lean();
+        if (!book) {
+            return { success: false, error: "Book not found" };
+        }
+        if (book.clerkId !== clerkId) {
+            return { success: false, error: "Unauthorized: book does not belong to this user" };
+        }
+
         const segmentsToInsert = segments.map(({ text, segmentIndex, pageNumber, wordCount }) => ({
             clerkId,
             bookId,

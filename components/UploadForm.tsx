@@ -20,7 +20,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { toast } from 'sonner'
 import { parsePDFFile } from '@/lib/utils'
 import { upload } from "@vercel/blob/client"
-import { string } from 'zod'
+import { MAX_FILE_SIZE } from '@/lib/constant'
 
 // Define the form schema with zod
 const formSchema = z.object({
@@ -33,7 +33,6 @@ const formSchema = z.object({
 
 export default function UploadForm() {
     const [isSynthesizing, setIsSynthesizing] = useState(false)
-    const [isMounted, setIsMounted] = useState(false)
     const { userId } = useAuth();
     const router = useRouter();
 
@@ -63,13 +62,20 @@ export default function UploadForm() {
 
         console.log("Form values:", data)
         try {
-            const existsCheck = await checkBookExists(data.title)
+            const existsCheck = await checkBookExists(data.title, userId)
             if (existsCheck.exists && existsCheck.data) {
                 handleBookAlreadyExists(existsCheck.data.slug)
                 return;
             }
             const fileTitle = data.title.toLowerCase().replace(/\s+/g, '-')
             const pdfFile = data.pdfFile
+
+            // Validate file size before parsing
+            if (pdfFile.size > MAX_FILE_SIZE) {
+                toast.error(`File too large. Maximum size is ${MAX_FILE_SIZE / (1024 * 1024)}MB.`)
+                return;
+            }
+
             const parsedPDF = await parsePDFFile(pdfFile)
             if (parsedPDF.content.length === 0) {
                 toast.error("Failed to parse PDF text")
@@ -77,7 +83,7 @@ export default function UploadForm() {
             }
 
             // Note: Upload logic requires generating a token on the server
-            const uplodedPdfBlob = await upload(fileTitle, pdfFile, {
+            const uploadedPdfBlob = await upload(fileTitle, pdfFile, {
                 access: 'public',
                 handleUploadUrl: '/api/upload',
                 contentType: 'application/pdf',
@@ -109,7 +115,7 @@ export default function UploadForm() {
                 title: data.title,
                 author: data.author,
                 persona: data.voice,
-                fileURL: uplodedPdfBlob.url,
+                fileURL: uploadedPdfBlob.url,
                 fileBlobKey: fileTitle,
                 coverURL: coverImage, // The URL of the custom or generated cover
                 coverBlobKey: coverName,
@@ -138,8 +144,8 @@ export default function UploadForm() {
             form.reset()
             router.push('/')
         } catch (error) {
-            console.error("Error checking book exists:", error)
-            toast.error("Error checking book exists")
+            console.error("Error processing book upload:", error)
+            toast.error("Error processing book upload")
         } finally {
             setIsSynthesizing(false)
         }

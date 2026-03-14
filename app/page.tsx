@@ -3,15 +3,20 @@ import Hero from "@/components/Hero";
 import BookCard from "@/components/BookCard";
 import { auth } from "@clerk/nextjs/server";
 import { getAllBooks } from "@/lib/actions/book.actions";
+import { BookCardProps } from "@/types";
 
-export default async function page() {
+export default async function Page() {
   const { userId } = await auth();
 
-  let books: any[] = [];
+  let books: BookCardProps[] = [];
   if (userId) {
-    const result = await getAllBooks(userId);
-    if (result.success) {
-      books = result.data;
+    try {
+      const result = await getAllBooks(userId);
+      if (result.success) {
+        books = result.data;
+      }
+    } catch (error) {
+      console.error("Error fetching books:", error);
     }
   }
 
@@ -22,7 +27,7 @@ export default async function page() {
         {books.length > 0 ? (
           books.map((book) => (
             <BookCard
-              key={book._id}
+              key={book.slug}
               title={book.title}
               author={book.author}
               coverURL={book.coverURL}

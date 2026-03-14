@@ -12,7 +12,6 @@ export async function POST(request: Request): Promise<NextResponse> {
             request,
             onBeforeGenerateToken: async () => {
                 const { userId } = await auth();
-
                 if (!userId) {
                     throw new Error('Unauthorized: User not authenticated');
                 }
@@ -25,13 +24,13 @@ export async function POST(request: Request): Promise<NextResponse> {
                 }
             },
             onUploadCompleted: async ({ blob, tokenPayload }) => {
-                console.log('Upload completed:', blob.url);
+                console.log('Upload completed successfully');
 
                 try {
                     const payload = JSON.parse(tokenPayload as string);
-                    console.log('Uploaded by user:', payload.userId);
+                    console.log('Upload processed for authenticated user');
                 } catch (error) {
-                    console.error('Error processing upload completion:', error);
+                    console.error('Error processing upload completion');
                     throw new Error('Could not process upload completion');
                 }
             },
@@ -39,9 +38,12 @@ export async function POST(request: Request): Promise<NextResponse> {
 
         return NextResponse.json(jsonResponse);
     } catch (error) {
+        const message = (error as Error).message;
+        const isAuthError = message.toLowerCase().includes('unauthorized') || message.toLowerCase().includes('not authenticated');
+        const status = isAuthError ? 401 : 400;
         return NextResponse.json(
-            { error: (error as Error).message },
-            { status: 400 }
+            { error: message },
+            { status }
         );
     }
 }

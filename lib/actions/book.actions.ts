@@ -105,3 +105,20 @@ export const getAllBooks = async (clerkId: string) => {
         throw error;
     }
 }
+
+export const getBookBySlug = async (slug: string, clerkId: string) => {
+    try {
+        await connectToDatabase();
+        const book = await Book.findOne({ slug, clerkId }).lean();
+        if (!book) {
+            return { success: false, data: null };
+        }
+        return {
+            success: true,
+            data: serializeData(book),
+        }
+    } catch (error) {
+        console.error("Error fetching book by slug:", error);
+        throw error;
+    }
+}
